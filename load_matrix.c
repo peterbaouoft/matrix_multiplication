@@ -2,9 +2,10 @@
 #include "matrix_multiply.h"
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <getopt.h>
-
+#include <errno.h>
 
 static bool arg_sparse = false;
 static const char *arg_first_file = NULL;
@@ -42,14 +43,79 @@ static int parse_argv(int argc, char *argv[]){
             break;
         case ARG_FIRST_FILE:
             arg_first_file = optarg;
-            printf("Test first file %s\n", optarg);
             break;
         case ARG_SECOND_FILE:
             arg_second_file = optarg;
-            printf("Test second file %s\n", optarg);
             break;
         }
     }
+    return 1;
+}
+
+static int load_file_into_matrix(const char *matrix_file_path,
+                                 int      ***out_matrix,
+                                 int        *out_rows,
+                                 int        *out_cols){
+    FILE *f = NULL;
+    char *line = NULL;
+    ssize_t read;
+    size_t n_allocated = 0;
+    int **matrix = NULL, rows = 0, cols = 0;
+
+    int r;
+
+    f = fopen(matrix_file_path, "r");
+    if (!f){
+        printf("Error, failed to open the file %s\n", matrix_file_path);
+        return errno == ENOENT ? 0 : -errno;
+    }
+
+    // Process first line to get row and cols of the matrix
+    read = getline(&line, &n_allocated, f);
+    if (read < 0){
+        printf("Error, failed to read the first line from file %s\n", matrix_file_path);
+        return -1;
+    }
+
+    r = sscanf(line, "%d %d", &rows, &cols);
+    if (r != 2) {
+        printf("Error, row and column supposed to be specified in the first line of the file %s\n", matrix_file_path);
+        return -1;
+    }
+
+    // Initialize the array via malloc
+    matrix = (int **)malloc(rows * sizeof(int *));
+    for (int row = 0; row < rows; row ++)
+        matrix[row] = (int *) malloc(cols * sizeof(int));
+
+    // Collect the remaining matrix information and put into the array
+    for (int row = 0; row < rows; row++){
+        read = getline(&line, &n_allocated, f);
+        if (read < 0) {
+            printf("Error, failed to read line number %d from file %s\n", row + 1, matrix_file_path);
+            return -1;
+        }
+
+        // Use sscanf to read one number at a time, and use the offset to move to the next number
+        for (int col = 0; col < cols; col++){
+            int offset = 0;
+            sscanf(line, "%d%n", &matrix[row][col], &offset);
+
+            if (offset == 0) {
+                printf("Error, cell value invalid in line %d from file %s \n", row + 1, matrix_file_path);
+                return - 1;
+            }
+            printf("Loaded value of %d at row %d col %d\n", matrix[row][col], row, col);
+            line += offset;
+        }
+    }
+
+    // Transfer the ownership
+    *out_matrix = matrix;
+    matrix = NULL;
+    *out_rows = rows;
+    *out_cols = cols;
+
     return 1;
 }
 
@@ -63,5 +129,22 @@ int main (int argc, char **argv){
         printf("Error: You need to specify two input matrix file to perform multiplication!\n");
         return 0;
     }
+
+    int **matrix_x, x_rows, x_cols;
+    int **matrix_y, y_rows, y_cols;
+
+    r = load_file_into_matrix(arg_first_file, &matrix_x, &x_rows, &x_cols);
+    if (r <= 0)
+        return r;
+
+    printf("Matrix X with %d rows and %d cols loaded!\n", x_rows, x_cols);
+    r = load_file_into_matrix(arg_second_file, &matrix_y, &y_rows, &y_cols);
+    if (r <= 0)
+        return r;
+    printf ("Matrix Y with %d rows and %d cols loaded!\n", y_rows, y_cols);
+
+    return 0;
+
+    // TODO: free all of the values....
 }
 
