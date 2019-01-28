@@ -1,9 +1,6 @@
 #include <unistd.h>
 #include "matrix_multiply.h"
 #include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <getopt.h>
 #include <errno.h>
 
@@ -105,7 +102,6 @@ static int load_file_into_matrix(const char *matrix_file_path,
                 printf("Error, cell value invalid in line %d from file %s \n", row + 1, matrix_file_path);
                 return - 1;
             }
-            printf("Loaded value of %d at row %d col %d\n", matrix[row][col], row, col);
             line += offset;
         }
     }
@@ -117,6 +113,18 @@ static int load_file_into_matrix(const char *matrix_file_path,
     *out_cols = cols;
 
     return 1;
+}
+
+
+static void printMatrix(int **matrix,
+                        int         rows,
+                        int         cols){
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < cols; col++)
+            printf("%d ", matrix[row][col]);
+        printf("\n");
+    }
 }
 
 int main (int argc, char **argv){
@@ -136,12 +144,21 @@ int main (int argc, char **argv){
     r = load_file_into_matrix(arg_first_file, &matrix_x, &x_rows, &x_cols);
     if (r <= 0)
         return r;
+    printf("Matrix x with %d rows and %d cols is loaded\n", x_rows, x_cols);
+    printMatrix(matrix_x, x_rows, x_cols);
 
-    printf("Matrix X with %d rows and %d cols loaded!\n", x_rows, x_cols);
     r = load_file_into_matrix(arg_second_file, &matrix_y, &y_rows, &y_cols);
     if (r <= 0)
         return r;
-    printf ("Matrix Y with %d rows and %d cols loaded!\n", y_rows, y_cols);
+    printf("============================================\n");
+    printf("Matrix y with %d rows and %d cols is loaded\n", y_rows, y_cols);
+    printMatrix(matrix_y, y_rows, y_cols);
+
+    printf("============================================\n\n");
+
+    int **result = sparse_matrix_wrapper(arg_sparse, matrix_x, matrix_y, x_rows, x_cols, y_rows, y_cols);
+    printf("Thre resulting matrix is:\n");
+    printMatrix(result, x_rows, y_cols);
 
     return 0;
 
