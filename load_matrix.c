@@ -9,8 +9,13 @@ static const char *arg_first_file = NULL;
 static const char *arg_second_file = NULL;
 
 static int help(){
-    // TODO: add help messages
-    printf ("Test help!\n");
+    printf("Matrix Multiply program \n\n"
+           "Supported options include the following:\n"
+           " -h --help              Show this help\n"
+           " -s --sparse            Use sparse matrix multiplication method\n"
+           "    --matrix_x=PATH     Load file that contains the first matrix\n"
+           "    --matrix_y=PATH     Load file that contains the second matrix\n");
+
     return 0;
 }
 
@@ -36,7 +41,6 @@ static int parse_argv(int argc, char *argv[]){
             return help();
         case 's':
             arg_sparse = true;
-            printf("Test sparse\n");
             break;
         case ARG_FIRST_FILE:
             arg_first_file = optarg;
