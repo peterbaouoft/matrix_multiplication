@@ -31,8 +31,10 @@ Note: therotically, any file format should work as long as it follows the matrix
 An example format of matrix can be seen in the test file:
 E.g:
 
+```
 2 2
 1 2
 3 4
+```
 
 is a 2 x 2 matrix with ((1, 2) (3 , 4)) as values
