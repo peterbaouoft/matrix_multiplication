@@ -12,7 +12,7 @@ static int help(){
     printf("Matrix Multiply program \n\n"
            "Supported options include the following:\n"
            " -h --help              Show this help\n"
-           " -s --sparse            Use sparse matrix multiplication method\n"
+           " -s --sparse            Display matrices in sparse form\n"
            "    --matrix_x=PATH     Load file that contains the first matrix\n"
            "    --matrix_y=PATH     Load file that contains the second matrix\n");
 
@@ -123,7 +123,8 @@ static int load_file_into_matrix(const char *matrix_file_path,
 static void printMatrix(int **matrix,
                         int         rows,
                         int         cols){
-
+    if (matrix == NULL)
+        return;
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < cols; col++)
             printf("%d ", matrix[row][col]);
@@ -161,7 +162,7 @@ int main (int argc, char **argv){
     printf("============================================\n\n");
 
     int **result = sparse_matrix_wrapper(arg_sparse, matrix_x, matrix_y, x_rows, x_cols, y_rows, y_cols);
-    printf("Thre resulting matrix is:\n");
+    printf("The resulting matrix is:\n");
     printMatrix(result, x_rows, y_cols);
 
     return 0;
